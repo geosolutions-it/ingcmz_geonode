@@ -76,3 +76,11 @@ loaders = TEMPLATES[0]['OPTIONS'].get('loaders') or ['django.template.loaders.fi
 # loaders.insert(0, 'apptemplates.Loader')
 TEMPLATES[0]['OPTIONS']['loaders'] = loaders
 TEMPLATES[0].pop('APP_DIRS', None)
+
+if 'geonode_logstash' not in INSTALLED_APPS:
+    INSTALLED_APPS += ('geonode_logstash',)
+
+    CELERY_BEAT_SCHEDULE['dispatch_metrics'] = {
+        'task': 'geonode_logstash.tasks.dispatch_metrics',
+        'schedule': 3600.0,
+    }
