@@ -86,6 +86,7 @@ COPY requirements.txt /usr/local/tomcat/tmp
 COPY get_dockerhost_ip.py /usr/local/tomcat/tmp
 COPY get_nginxhost_ip.py /usr/local/tomcat/tmp
 COPY entrypoint.sh /usr/local/tomcat/tmp
+COPY datasource-ovr.properties /usr/local/tomcat/tmp
 
 RUN apt-get update \
     && apt-get -y upgrade \

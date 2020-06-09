@@ -126,7 +126,7 @@ LOGGING = {
     },
 }
 
-if 'geonode_logstash' not in INSTALLED_APPS:
+if USER_ANALYTICS_ENABLED and 'geonode_logstash' not in INSTALLED_APPS:
     INSTALLED_APPS += ('geonode_logstash',)
 
     CELERY_BEAT_SCHEDULE['dispatch_metrics'] = {
