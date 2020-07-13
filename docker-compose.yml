@@ -28,7 +28,7 @@ services:
         org.geonode.deployment.name: ${COMPOSE_PROJECT_NAME}
 
   geoserver:
-    image: geonode/geoserver:2.16.2
+    image: geonode/geoserver:2.17.1
     build: ./docker/geoserver/
     restart: unless-stopped
     container_name: geoserver4${COMPOSE_PROJECT_NAME}
@@ -41,6 +41,7 @@ services:
       - db
       - data-dir-conf
     volumes:
+      - statics:/mnt/volumes/statics
       - geoserver-data-dir:/geoserver_data/data
       - backup-restore:/backup_restore
     env_file:
@@ -76,7 +77,7 @@ services:
     stdin_open: true
     # tty: true
     labels:
-      org.geonode.component: django
+      org.geonode.component: celery
       org.geonode.instance.name: geonode
     depends_on:
       - db
@@ -89,8 +90,45 @@ services:
     env_file:
       - .env
     environment:
-      CELERY_CMD: celery beat --app=geonode.celery_app:app -l INFO -f /var/log/celery.log
+      CELERY_CMD: celery beat --app=geonode.celery_app:app -l DEBUG -f /var/log/celery.log
       IS_CELERY: 'True'
+
+  # - Uncomment to enable celery monitor
+  # celeryworker:
+  #   restart: unless-stopped
+  #   build: .
+  #   container_name: celeryworker4${COMPOSE_PROJECT_NAME}
+  #   stdin_open: true
+  #   # tty: true
+  #   labels:
+  #     org.geonode.component: celeryworker
+  #     org.geonode.instance.name: geonode
+  #   depends_on:
+  #     - db
+  #     - rabbitmq
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     CELERY_CMD: celery worker --app=geonode.celery_app:app -l DEBUG -c 4 -P threads -f /var/log/celery.log
+  #     IS_CELERY: 'True'
+  #
+  # celerymonitor:
+  #   restart: unless-stopped
+  #   build: .
+  #   container_name: celerymonitor4${COMPOSE_PROJECT_NAME}
+  #   stdin_open: true
+  #   # tty: true
+  #   labels:
+  #     org.geonode.component: celerymonitor
+  #     org.geonode.instance.name: geonode
+  #   depends_on:
+  #     - db
+  #     - rabbitmq
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     CELERY_CMD: celery flower --auto_refresh=True --debug=False -A geonode.celery_app --broker=${BROKER_URL} --basic_auth=${ADMIN_USERNAME}:${ADMIN_PASSWORD} --address=0.0.0.0 --port=5555
+  #     IS_CELERY: 'True'
 
   geonode:
     image: geonode/nginx:geoserver
@@ -126,7 +164,7 @@ services:
       - .env
 
   data-dir-conf:
-    image: geonode/geoserver_data:2.16.2
+    image: geonode/geoserver_data:2.17.1
     restart: on-failure
     container_name: gsconf4${COMPOSE_PROJECT_NAME}
     labels:
